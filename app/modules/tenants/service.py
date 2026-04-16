@@ -41,6 +41,18 @@ class TenantService:
         await self._repository.save(theme)
         return TenantThemeReadSchema.model_validate(theme)
 
+    async def get_settings_by_tenant_id(self, tenant_id: str) -> TenantSettingsReadSchema:
+        settings_record = await self._repository.find_settings_by_tenant_id(tenant_id)
+        if settings_record is None:
+            raise TenantNotFoundException(tenant_id)
+        return TenantSettingsReadSchema.model_validate(settings_record)
+
+    async def resolve_tenant_id(self, slug: str) -> str:
+        tenant = await self._repository.find_by_slug(slug)
+        if tenant is None:
+            raise TenantNotFoundException(slug)
+        return tenant.id
+
     async def update_settings(
         self, tenant_id: str, payload: TenantSettingsUpdateSchema
     ) -> TenantSettingsReadSchema:

@@ -27,10 +27,12 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "noreply@bigboss.io"
 
-    otp_expire_seconds: int = 60
-    otp_max_attempts: int = 3
+    otp_expire_seconds: int = 600
+    otp_max_attempts: int = 5
     otp_test_phone: str = ""
     otp_test_code: str = ""
+
+    media_base_url: str = "http://localhost:8000/media"
 
 
 settings = Settings()

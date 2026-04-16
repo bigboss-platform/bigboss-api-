@@ -5,15 +5,20 @@ from app.modules.orders.exceptions import OrderAlreadyCancelledException, OrderN
 from app.modules.orders.models import Order, OrderItem
 from app.modules.orders.repository import OrderRepository
 from app.modules.orders.schemas import (
+    DashboardStatsSchema,
     DeliveryCalculateSchema,
     DeliveryCostSchema,
     OrderCreateSchema,
+    OrderListResponseSchema,
     OrderPaymentUpdateSchema,
     OrderReadSchema,
     OrderStatusUpdateSchema,
 )
+from app.modules.tenants.public import TenantService
 from app.shared.enums import OrderStatus
 from app.shared.utils import calculate_haversine_distance_km
+
+DELIVERY_COST_PER_KM = 2.0
 
 
 class OrderService:
@@ -21,9 +26,11 @@ class OrderService:
         self,
         order_repository: OrderRepository,
         menu_service: MenuService,
+        tenant_service: TenantService,
     ) -> None:
         self._order_repository = order_repository
         self._menu_service = menu_service
+        self._tenant_service = tenant_service
 
     async def create_order(
         self, end_user_id: str, tenant_id: str, payload: OrderCreateSchema
@@ -49,6 +56,7 @@ class OrderService:
 
         order = Order(
             id=str(uuid4()),
+            tenant_id=tenant_id,
             end_user_id=end_user_id,
             status=OrderStatus.PENDING,
             delivery_type=payload.delivery_type,
@@ -109,3 +117,47 @@ class OrderService:
             updated_by=updated_by,
         )
         return OrderReadSchema.model_validate(updated)
+
+    async def list_by_tenant(
+        self,
+        tenant_id: str,
+        status_filter: str = "",
+        page: int = 1,
+        page_size: int = 20,
+    ) -> OrderListResponseSchema:
+        orders, total = await self._order_repository.find_all_by_tenant(
+            tenant_id=tenant_id,
+            status_filter=status_filter,
+            page=page,
+            page_size=page_size,
+        )
+        return OrderListResponseSchema(
+            data=[OrderReadSchema.model_validate(o) for o in orders],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+    async def calculate_delivery(
+        self,
+        tenant_id: str,
+        payload: DeliveryCalculateSchema,
+    ) -> DeliveryCostSchema:
+        settings = await self._tenant_service.get_settings_by_tenant_id(tenant_id)
+        distance_km = calculate_haversine_distance_km(
+            lat1=float(settings.business_lat),
+            lng1=float(settings.business_lng),
+            lat2=payload.delivery_lat,
+            lng2=payload.delivery_lng,
+        )
+        is_within_range = distance_km <= float(settings.max_delivery_radius_km)
+        cost = round(distance_km * DELIVERY_COST_PER_KM, 2)
+        return DeliveryCostSchema(
+            distance_km=round(distance_km, 3),
+            cost=cost,
+            is_within_range=is_within_range,
+        )
+
+    async def get_dashboard_stats(self, tenant_id: str) -> DashboardStatsSchema:
+        stats = await self._order_repository.get_dashboard_stats(tenant_id)
+        return DashboardStatsSchema(**stats)

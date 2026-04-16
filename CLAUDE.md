@@ -94,6 +94,16 @@ pytest tests/unit -v          # unit tests
 pytest tests/integration -v   # integration tests
 ```
 
+## Codebase Gotchas — Read Before Touching These Areas
+
+**Exception subclasses:** `BigBossException` sets `status_code`, `error_type`, `title`, `detail` as **class attributes** — not `__init__` kwargs. Subclasses define them at class level and call `super().__init__()` with no args (or omit `__init__` entirely).
+
+**Model IDs are always `String`:** Every primary key and every FK is `Mapped[str] = mapped_column(String, ...)`. Never use `UUID(as_uuid=True)` — that was a bug that was fixed. String UUIDs via `uuid4()` everywhere.
+
+**Cross-module slug resolution:** When a router receives a `tenant_slug` from the URL path and needs to call a service from a different module, it must resolve the slug to a `tenant_id` first via `TenantService.resolve_tenant_id()`. Import `TenantService` and `get_tenant_service` from `app.modules.tenants.public` — never from internals. See `menus/router.py` for the established pattern.
+
+**`public.py` exports dependency factories:** When another module needs a service as a FastAPI dependency, the factory function (`get_X_service`) must be exported from `module/public.py`. This is how cross-module dependency injection stays boundary-clean.
+
 ## Forbidden Patterns
 - `session.query()` — use `select()`
 - Importing from `module/service.py` or `module/models.py` from outside the module

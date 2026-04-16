@@ -38,6 +38,8 @@ class TenantSettingsReadSchema(BigBossReadSchema):
     tenant_id: str
     business_name: str
     business_address: str
+    business_lat: float
+    business_lng: float
     whatsapp_number: str
     whatsapp_message_template: str
     max_delivery_radius_km: float

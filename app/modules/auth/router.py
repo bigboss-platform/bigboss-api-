@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.modules.auth.dependencies import get_auth_service
-from app.modules.auth.schemas import OtpRequestSchema, OtpVerifySchema, TokenPairSchema
+from app.modules.auth.schemas import OtpRequestSchema, OtpVerifySchema, TokenPairSchema, TokenRefreshSchema
 from app.modules.auth.service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -22,3 +22,11 @@ async def verify_otp(
     service: AuthService = Depends(get_auth_service),
 ) -> TokenPairSchema:
     return await service.verify_otp(payload)
+
+
+@router.post("/token/refresh", response_model=TokenPairSchema)
+async def refresh_token(
+    payload: TokenRefreshSchema,
+    service: AuthService = Depends(get_auth_service),
+) -> TokenPairSchema:
+    return await service.refresh_token(payload)

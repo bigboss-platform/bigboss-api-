@@ -50,6 +50,12 @@ class MenuSectionCreateSchema(BigBossBaseSchema):
     sort_order: int = 0
 
 
+class MenuSectionUpdateSchema(BigBossBaseSchema):
+    name: str = ""
+    sort_order: int = 0
+    is_active: bool = True
+
+
 class MenuReadSchema(BigBossReadSchema):
     tenant_id: str
     is_active: bool

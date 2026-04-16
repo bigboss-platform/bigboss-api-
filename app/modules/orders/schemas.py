@@ -71,10 +71,23 @@ class OrderPaymentUpdateSchema(BigBossBaseSchema):
 class DeliveryCalculateSchema(BigBossBaseSchema):
     delivery_lat: float
     delivery_lng: float
-    tenant_slug: str
 
 
 class DeliveryCostSchema(BigBossBaseSchema):
     distance_km: float
     cost: float
     is_within_range: bool
+
+
+class OrderListResponseSchema(BigBossBaseSchema):
+    data: list[OrderReadSchema] = []
+    total: int
+    page: int
+    page_size: int
+
+
+class DashboardStatsSchema(BigBossBaseSchema):
+    orders_today: int
+    revenue_today: float
+    active_orders: int
+    pending_payments: int

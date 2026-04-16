@@ -4,16 +4,18 @@ from app.core.config import settings
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    decode_token,
     generate_otp_code,
     hash_otp_code,
 )
 from app.modules.auth.exceptions import (
     InvalidOtpException,
+    InvalidRefreshTokenException,
     OtpExpiredException,
     OtpMaxAttemptsException,
 )
 from app.modules.auth.repository import AuthRepository
-from app.modules.auth.schemas import OtpRequestSchema, OtpVerifySchema, TokenPairSchema
+from app.modules.auth.schemas import OtpRequestSchema, OtpVerifySchema, TokenPairSchema, TokenRefreshSchema
 from app.modules.end_users.public import EndUserService
 
 
@@ -69,6 +71,23 @@ class AuthService:
                 subject=end_user.id,
                 role="end_user",
                 tenant_id=payload.tenant_id,
+            ),
+        )
+
+    async def refresh_token(self, payload: TokenRefreshSchema) -> TokenPairSchema:
+        token_data = decode_token(payload.refresh_token)
+        if not token_data or token_data.get("type") != "refresh":
+            raise InvalidRefreshTokenException()
+        return TokenPairSchema(
+            access_token=create_access_token(
+                subject=token_data["sub"],
+                role=token_data["role"],
+                tenant_id=token_data["tenant_id"],
+            ),
+            refresh_token=create_refresh_token(
+                subject=token_data["sub"],
+                role=token_data["role"],
+                tenant_id=token_data["tenant_id"],
             ),
         )
 

@@ -10,6 +10,7 @@ from app.shared.enums import DeliveryType, OrderStatus, PaymentStatus
 class Order(TimestampedBase):
     __tablename__ = "orders"
 
+    tenant_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     end_user_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(50), default=OrderStatus.PENDING, nullable=False)
     delivery_type: Mapped[str] = mapped_column(String(20), nullable=False)

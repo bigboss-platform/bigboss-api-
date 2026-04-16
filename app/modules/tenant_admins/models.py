@@ -1,7 +1,5 @@
-from sqlalchemy import String, ForeignKey, Boolean
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
 
 from app.shared.base_model import TimestampedBase
 
@@ -10,8 +8,8 @@ class TenantAdmin(TimestampedBase):
     __tablename__ = "tenant_admins"
     __table_args__ = {"schema": "public"}
 
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    tenant_id: Mapped[str] = mapped_column(
+        String,
         ForeignKey("public.tenants.id"),
         nullable=False,
         index=True,

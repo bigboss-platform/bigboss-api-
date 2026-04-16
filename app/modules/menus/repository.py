@@ -21,7 +21,9 @@ class MenuRepository:
 
     async def find_section_by_id(self, section_id: str) -> MenuSection | None:
         result = await self._session.execute(
-            select(MenuSection).where(
+            select(MenuSection)
+            .options(selectinload(MenuSection.items))
+            .where(
                 MenuSection.id == section_id,
                 MenuSection.is_deleted == False,  # noqa: E712
             )
@@ -39,3 +41,4 @@ class MenuRepository:
     async def save(self, entity: Menu | MenuSection | MenuItem) -> None:
         self._session.add(entity)
         await self._session.flush()
+        await self._session.refresh(entity)

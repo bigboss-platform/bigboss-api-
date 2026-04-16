@@ -20,9 +20,16 @@ async def login(session: AsyncSession, payload: TenantAdminLoginSchema) -> Tenan
     if not admin.is_active:
         raise TenantAdminInactiveException()
 
-    token_data = {"sub": str(admin.id), "role": "tenant_admin", "tenant_id": str(admin.tenant_id)}
     return TenantAdminTokenSchema(
-        access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
+        access_token=create_access_token(
+            subject=str(admin.id),
+            role="tenant_admin",
+            tenant_id=str(admin.tenant_id),
+        ),
+        refresh_token=create_refresh_token(
+            subject=str(admin.id),
+            role="tenant_admin",
+            tenant_id=str(admin.tenant_id),
+        ),
         admin=TenantAdminReadSchema.model_validate(admin),
     )
