@@ -1,0 +1,82 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [develop, main]
+    push:
+        branches: [develop]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: bigboss
+                    POSTGRES_PASSWORD: bigboss
+                    POSTGRES_DB: bigboss_test_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6379:6379
+
+        env:
+            DATABASE_URL: postgresql+asyncpg://bigboss:bigboss@localhost:5432/bigboss_test_db
+            TEST_DATABASE_URL: postgresql+asyncpg://bigboss:bigboss@localhost:5432/bigboss_test_db
+            REDIS_URL: redis://localhost:6379/0
+            APP_ENV: ci
+            APP_SECRET_KEY: ci-secret-key-minimum-32-characters-long
+            APP_DEBUG: false
+            JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+            JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
+            SMTP_HOST: localhost
+            SMTP_PORT: 1025
+            SMTP_USERNAME: ""
+            SMTP_PASSWORD: ""
+            SMTP_FROM: noreply@bigboss.io
+            OTP_EXPIRE_SECONDS: 60
+            OTP_MAX_ATTEMPTS: 3
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install Poetry
+              run: pip install poetry
+
+            - name: Install dependencies
+              run: poetry install
+
+            - name: Lint
+              run: poetry run ruff check .
+
+            - name: Format check
+              run: poetry run black --check .
+
+            - name: Type check
+              run: poetry run mypy app
+
+            - name: Run migrations
+              run: poetry run alembic upgrade head
+
+            - name: Unit tests
+              run: poetry run pytest tests/unit -v --cov=app --cov-report=xml
+
+            - name: Integration tests
+              run: poetry run pytest tests/integration -v
+
+            - name: Contract tests
+              run: poetry run pytest tests/contract -v
