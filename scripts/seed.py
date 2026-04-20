@@ -89,11 +89,13 @@ async def seed() -> None:
 
         menu = Menu(tenant_id=tenant.id, is_active=True)
         session.add(menu)
+        await session.flush()
 
         hamburguesas = MenuSection(menu_id=menu.id, name="Hamburguesas", sort_order=1)
         bebidas = MenuSection(menu_id=menu.id, name="Bebidas", sort_order=2)
         session.add(hamburguesas)
         session.add(bebidas)
+        await session.flush()
 
         burger_items = [
             ("Clásica", "Carne de res, lechuga, tomate y salsa especial", 18000, 1),
