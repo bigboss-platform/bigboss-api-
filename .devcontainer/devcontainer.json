@@ -27,6 +27,9 @@
             }
         }
     },
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
     "postCreateCommand": "git config --global user.email \"${GIT_AUTHOR_EMAIL}\" && git config --global user.name \"${GIT_AUTHOR_NAME}\" && make install && pre-commit install",
     "remoteUser": "root",
     "forwardPorts": [8000, 5432, 6379, 8025],
