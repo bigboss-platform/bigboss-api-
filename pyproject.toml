@@ -3,7 +3,7 @@ name = "bigboss-api"
 version = "0.1.0"
 description = "BigBoss Platform API"
 authors = []
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -16,9 +16,11 @@ pydantic = "^2.10.0"
 pydantic-settings = "^2.7.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+bcrypt = "<4.0"
 celery = {extras = ["redis"], version = "^5.4.0"}
 redis = "^5.2.0"
 httpx = "^0.28.0"
+python-multipart = "^0.0.20"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
