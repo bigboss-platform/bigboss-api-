@@ -39,6 +39,7 @@ async def seed() -> None:
 
         tenant = Tenant(slug=TENANT_SLUG, product="fastfood", is_active=True)
         session.add(tenant)
+        await session.flush()
 
         session.add(
             TenantTheme(
